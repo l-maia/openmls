@@ -50,13 +50,15 @@ impl SenderRatchet {
             Ok(ratchet_secrets)
         // If generation is in the future
         } else {
-            for _ in 0..(generation - self.generation) {
+            let generation_gap = generation - self.generation;
+            for _ in 0.. generation_gap {
                 if self.past_secrets.len() == OUT_OF_ORDER_TOLERANCE as usize {
                     self.past_secrets.remove(0);
                 }
                 let new_secret =
                     self.ratchet_secret(ciphersuite, self.past_secrets.last().unwrap());
                 self.past_secrets.push(new_secret);
+                self.generation +=1;
             }
             let secret = self.past_secrets.last().unwrap();
             let ratchet_secrets = self.derive_key_nonce(ciphersuite, secret, generation);
